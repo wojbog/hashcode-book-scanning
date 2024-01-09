@@ -1,4 +1,15 @@
+from collections.abc import Callable
+
+from typing import Optional
+from time import perf_counter
 import random
+from score_result import get_answer_from_file
+import os
+import sys
+from algorithms.local_search import local_search
+import cProfile
+import pstats
+
 from dataclasses import dataclass
 
 
@@ -9,43 +20,35 @@ class Solution:
     books_to_library: list[int]
 
 
-def read_data():
-    tab = input().split()
+def read_data(file_name: str):
+    file = open(file_name, "r")
+    tab = file.readline().split()
 
     book_number = int(tab[0])
     library_number = int(tab[1])
     no_of_days = int(tab[2])
 
-    # print(book_number, library_number, no_of_days)
-
-    tab = input().split()
+    tab = file.readline().split()
     book_score = [int(el) for el in tab]
-
-    # print(book_score)
 
     from library import Library
 
     libraries = []
 
     for i in range(library_number):
-        tab = input().split()
-        temp = input().split()
+        tab = file.readline().split()
+        temp = file.readline().split()
         libraries.append(Library(i, [int(el) for el in temp], int(tab[1]), int(tab[2])))
 
-    # print(libraries)
+    file.close()
     return no_of_days, book_score, libraries
 
 
 ################################################################
-# algorithm
-# print(libraries[0].books)
-# libraries[0].sort_books(book_score)
-# print(libraries[0].books)
 
 
 def get_score(order_of_signup: list[int]) -> int:
     scored = [False] * len(book_score)
-    # books_to_library = [-1] * len(book_score)
 
     score = 0
     total_days = no_of_days
@@ -62,55 +65,50 @@ def get_score(order_of_signup: list[int]) -> int:
             if scored[book_id]:
                 continue
 
-            # books_to_library[book_id] = library_id
-
             score += book_score[book_id]
             scored[book_id] = True
-    # return score, books_to_library
     return score
 
 
-def local_search():
-    initial_solution = list(range(len(libraries)))
-
-    random.shuffle(initial_solution)
-
-    best_solution = initial_solution
-    while True:
-        better_found = False
-        for neighbour in get_neighbours(initial_solution):
-            if get_score(neighbour) > get_score(best_solution):
-                best_solution = neighbour
-                better_found = True
-        if not better_found:
-            return best_solution
-
-
-def get_neighbours(solution: list[int]) -> list[list[int]]:
-    neighbours = []
-
-    for i in range(len(solution) - 1):
-        new_solution = solution.copy()
-        new_solution[i], new_solution[i + 1] = new_solution[i + 1], new_solution[i]
-
-        neighbours.append(new_solution)
-
-    return neighbours
-
-
-def solve():
-    for library in libraries:
-        library.sort_books(book_score)
-
-    no_of_iterations = 100
-
-    best_solution = max((local_search() for _ in range(no_of_iterations)))
-
-    print(get_score(best_solution))
-    print(best_solution)
-
-
-if __name__ == "__main__":
+def solve(intput_file: str, output_file: Optional[str], algorithm: Callable):
     global no_of_days, book_score, libraries
-    no_of_days, book_score, libraries = read_data()
-    solve()
+
+    no_of_days, book_score, libraries = read_data(input_file)
+
+    for lib in libraries:
+        lib.sort_books(book_score)
+    start_time = perf_counter()
+    score, solution = algorithm(libraries, get_score)
+    end_time = perf_counter()
+    print(f"Score: {score}")
+    print(f"Solution: {solution}")
+    print(f"Time: {end_time - start_time}")
+
+    if output_file is not None:
+        score, solution = get_answer_from_file(intput_file, output_file)
+        print(f"Correct Score: {score}")
+        print(f"Correct Solution: {solution}")
+
+
+input_file = sys.argv[1]
+output_file = None
+if len(sys.argv) > 2:
+    output_file = sys.argv[2]
+
+
+with cProfile.Profile() as pr:
+    solve(input_file, output_file, local_search)
+
+stats = pstats.Stats(pr)
+stats.sort_stats(pstats.SortKey.TIME)
+
+# stats to be visualized by ```snakeviz profile.prof```
+stats.dump_stats("profile.prof")
+
+# no_of_days, book_score, libraries = read_data(input_file)
+
+# score, solution = local_search(libraries, get_score)
+
+
+# if output_file is not None:
+#     print(get_answer_from_file(input_file, output_file))
