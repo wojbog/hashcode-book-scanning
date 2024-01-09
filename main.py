@@ -1,4 +1,12 @@
 import random
+from dataclasses import dataclass
+
+
+@dataclass
+class Solution:
+    no_of_libraries: int
+    library_order: list[int]
+    books_to_library: list[int]
 
 
 def read_data():
@@ -30,7 +38,6 @@ def read_data():
 
 ################################################################
 # algorithm
-no_of_days, book_score, libraries = read_data()
 # print(libraries[0].books)
 # libraries[0].sort_books(book_score)
 # print(libraries[0].books)
@@ -38,6 +45,8 @@ no_of_days, book_score, libraries = read_data()
 
 def get_score(order_of_signup: list[int]) -> int:
     scored = [False] * len(book_score)
+    # books_to_library = [-1] * len(book_score)
+
     score = 0
     total_days = no_of_days
     for library_id in order_of_signup:
@@ -53,8 +62,11 @@ def get_score(order_of_signup: list[int]) -> int:
             if scored[book_id]:
                 continue
 
+            # books_to_library[book_id] = library_id
+
             score += book_score[book_id]
             scored[book_id] = True
+    # return score, books_to_library
     return score
 
 
@@ -99,4 +111,6 @@ def solve():
 
 
 if __name__ == "__main__":
+    global no_of_days, book_score, libraries
+    no_of_days, book_score, libraries = read_data()
     solve()
