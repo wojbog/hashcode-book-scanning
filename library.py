@@ -6,4 +6,7 @@ class Library():
         self.books = books
 
     def __repr__(self):
-        return "<Library: id:" + str(self.id) + " signup_process:" +str(self.signup_process) + " book_ship:" +str(self.book_ship) + " books: " + self.books+ ">"
+        return "<Library: id:" + str(self.id) + " signup_process:" +str(self.signup_process) + " book_ship:" +str(self.book_ship) + " number_of_books:" +str(len(self.books))+">"
+
+    def sort_books(self,prority):
+        self.books.sort(key=lambda x:prority[x],reverse=True)

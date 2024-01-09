@@ -22,4 +22,9 @@ for i in range(library_number):
 
 print(libraries)
 
+################################################################
+#algorithm
+print(libraries[0].books)
+libraries[0].sort_books(book_score)
+print(libraries[0].books)
 
