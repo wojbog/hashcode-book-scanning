@@ -6,7 +6,8 @@ import random
 from score_result import get_answer_from_file
 import os
 import sys
-from algorithms.local_search import local_search
+from algorithms.local_search import local_search, local_search_iteration
+from algorithms.heuristic_solution_generator import heuristic_solution_generator
 import cProfile
 import pstats
 
@@ -38,7 +39,9 @@ def read_data(file_name: str):
     for i in range(library_number):
         tab = file.readline().split()
         temp = file.readline().split()
-        libraries.append(Library(i, [int(el) for el in temp], int(tab[1]), int(tab[2])))
+        libraries.append(
+            Library(i, [int(el) for el in temp], int(tab[1]), int(tab[2]), book_score)
+        )
 
     file.close()
     return no_of_days, book_score, libraries
@@ -48,7 +51,7 @@ def read_data(file_name: str):
 
 
 def get_score(order_of_signup: list[int]) -> int:
-    scored = [False] * len(book_score)
+    scored = [False] * len(book_scores)
 
     score = 0
     total_days = no_of_days
@@ -57,37 +60,51 @@ def get_score(order_of_signup: list[int]) -> int:
         days_left = total_days
         slots = days_left * libraries[library_id].book_chanels
 
-        for slot_id in range(slots):
-            if slot_id >= len(libraries[library_id].books):
-                break
-
-            book_id = libraries[library_id].books[slot_id]
+        for book_id in libraries[library_id].books:
             if scored[book_id]:
                 continue
 
-            score += book_score[book_id]
+            if slots == 0:
+                break
+
+            score += book_scores[book_id]
             scored[book_id] = True
+            slots -= 1
+
     return score
 
 
-def solve(intput_file: str, output_file: Optional[str], algorithm: Callable):
-    global no_of_days, book_score, libraries
+def solve(intput_file: str, output_file: Optional[str]):
+    global no_of_days, book_scores, libraries, sol
 
-    no_of_days, book_score, libraries = read_data(input_file)
+    no_of_days, book_scores, libraries = read_data(input_file)
 
     for lib in libraries:
-        lib.sort_books(book_score)
+        lib.sort_books(book_scores)
+
     start_time = perf_counter()
-    score, solution = algorithm(libraries, get_score)
+    score, solution = algorithm(libraries, book_scores, no_of_days)
     end_time = perf_counter()
     print(f"Score: {score}")
-    print(f"Solution: {solution}")
+    print(f"Solution: {solution[:100]}")
     print(f"Time: {end_time - start_time}")
 
     if output_file is not None:
-        score, solution = get_answer_from_file(intput_file, output_file)
-        print(f"Correct Score: {score}")
-        print(f"Correct Solution: {solution}")
+        rscore, rsolution = get_answer_from_file(intput_file, output_file)
+        print(f"Correct Score: {rscore}")
+        print(f"Correct Solution: {rsolution[:100]}")
+        print(f"Same?: {solution == rsolution}")
+
+
+def algorithm(libraries, book_scores, no_of_days):
+    heuristic_solution = heuristic_solution_generator(
+        libraries, book_scores, no_of_days
+    )
+    solution = local_search_iteration(
+        heuristic_solution, get_score, initial_solution=heuristic_solution
+    )
+
+    return get_score(solution), solution
 
 
 input_file = sys.argv[1]
@@ -97,13 +114,13 @@ if len(sys.argv) > 2:
 
 
 with cProfile.Profile() as pr:
-    solve(input_file, output_file, local_search)
+    solve(input_file, output_file)
 
-stats = pstats.Stats(pr)
-stats.sort_stats(pstats.SortKey.TIME)
+# stats = pstats.Stats(pr)
+# stats.sort_stats(pstats.SortKey.TIME)
 
-# stats to be visualized by ```snakeviz profile.prof```
-stats.dump_stats("profile.prof")
+# # stats to be visualized by ```snakeviz profile.prof```
+# stats.dump_stats("profile.prof")
 
 # no_of_days, book_score, libraries = read_data(input_file)
 
