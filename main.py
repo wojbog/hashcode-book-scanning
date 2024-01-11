@@ -1,4 +1,6 @@
 from collections.abc import Callable
+from library import Library
+from functools import partial
 
 from typing import Optional
 from time import perf_counter
@@ -50,8 +52,13 @@ def read_data(file_name: str):
 ################################################################
 
 
-def get_score(order_of_signup: list[int]) -> int:
-    scored = [False] * len(book_scores)
+def get_score(
+    order_of_signup: list[int],
+    books_scores: list[int],
+    no_of_days: int,
+    libraries: list[Library],
+) -> int:
+    scored = [False] * len(books_scores)
 
     score = 0
     total_days = no_of_days
@@ -67,7 +74,7 @@ def get_score(order_of_signup: list[int]) -> int:
             if slots == 0:
                 break
 
-            score += book_scores[book_id]
+            score += books_scores[book_id]
             scored[book_id] = True
             slots -= 1
 
@@ -87,7 +94,8 @@ def solve(intput_file: str, output_file: Optional[str]):
     end_time = perf_counter()
     print(f"Score: {score}")
     print(f"Solution: {solution[:100]}")
-    print(f"Time: {end_time - start_time}")
+    print(f"Time: {(end_time - start_time) / 60} minutes")
+    # in minutes
 
     if output_file is not None:
         rscore, rsolution = get_answer_from_file(intput_file, output_file)
@@ -100,27 +108,31 @@ def algorithm(libraries, book_scores, no_of_days):
     heuristic_solution = heuristic_solution_generator(
         libraries, book_scores, no_of_days
     )
+
+    gain_function = partial(
+        get_score, books_scores=book_scores, no_of_days=no_of_days, libraries=libraries
+    )
     solution = local_search_iteration(
-        heuristic_solution, get_score, initial_solution=heuristic_solution
+        libraries, gain_function, initial_solution=heuristic_solution
     )
 
-    return get_score(solution), solution
+    return gain_function(solution), solution
 
 
-input_file = sys.argv[1]
-output_file = None
-if len(sys.argv) > 2:
-    output_file = sys.argv[2]
+if __name__ == "__main__":
+    input_file = sys.argv[1]
+    output_file = None
+    if len(sys.argv) > 2:
+        output_file = sys.argv[2]
 
+    with cProfile.Profile() as pr:
+        solve(input_file, output_file)
 
-with cProfile.Profile() as pr:
-    solve(input_file, output_file)
+    stats = pstats.Stats(pr)
+    stats.sort_stats(pstats.SortKey.TIME)
 
-# stats = pstats.Stats(pr)
-# stats.sort_stats(pstats.SortKey.TIME)
-
-# # stats to be visualized by ```snakeviz profile.prof```
-# stats.dump_stats("profile.prof")
+    # # stats to be visualized by ```snakeviz profile.prof```
+    stats.dump_stats("profile.prof")
 
 # no_of_days, book_score, libraries = read_data(input_file)
 
