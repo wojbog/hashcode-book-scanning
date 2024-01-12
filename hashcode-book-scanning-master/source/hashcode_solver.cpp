@@ -54,21 +54,21 @@ void solve_problem(char* output_filename){
     vector<int> library_history;
     vector<int> books_ids[N];
 
-   for(int i = 0 ; i < num_libraries ; i++){
+   for(int library_id_outer = 0 ; library_id_outer < num_libraries ; library_id_outer++){
         if(current_day > num_days) 
             break;
         int best = -1;
         long long factor_nominator = 0, factor_denominator = 1;
         vector<int>lib_score(num_libraries,0);
 
-        for(int j = 0 ; j < num_libraries ; j++){
-            if(taken_libraries[j])
+        for(int library_id_inner = 0 ; library_id_inner < num_libraries ; library_id_inner++){
+            if(taken_libraries[library_id_inner])
                 continue;
-            for(int k = 0 ; k < library_books[j].size() ; k++){
-                int book_id = library_books[j][k];
+            for(int k = 0 ; k < library_books[library_id_inner].size() ; k++){
+                int book_id = library_books[library_id_inner][k];
                 if(taken_books[book_id])
                     continue;
-                lib_score[j]+= book_scores[book_id];
+                lib_score[library_id_inner]+= book_scores[book_id];
             }
         }
 

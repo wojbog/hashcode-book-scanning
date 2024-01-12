@@ -5,7 +5,7 @@ from functools import partial
 from typing import Optional
 from time import perf_counter
 import random
-from score_result import get_answer_from_file
+from score_result import get_answer_from_file, print_solution
 import os
 import sys
 from algorithms.local_search import local_search, local_search_iteration
@@ -62,28 +62,60 @@ def get_score(
 
     score = 0
     total_days = no_of_days
+
     for library_id in order_of_signup:
         total_days -= libraries[library_id].signup_process
         days_left = total_days
-        slots = days_left * libraries[library_id].book_chanels
+        available_slots = days_left * libraries[library_id].book_chanels
+
+        if available_slots <= 0:
+            continue
 
         for book_id in libraries[library_id].books:
             if scored[book_id]:
                 continue
 
-            if slots == 0:
+            if available_slots <= 0:
                 break
 
             score += books_scores[book_id]
             scored[book_id] = True
-            slots -= 1
+            available_slots -= 1
 
     return score
 
 
-def solve(intput_file: str, output_file: Optional[str]):
-    global no_of_days, book_scores, libraries, sol
+def assign_books(
+    order_of_signup: list[int],
+    books_scores: list[int],
+    no_of_days: int,
+    libraries: list[Library],
+):
+    scored = [False] * len(books_scores)
 
+    score = 0
+    total_days = no_of_days
+
+    for library_id in order_of_signup:
+        library = libraries[library_id]
+
+        total_days -= libraries[library_id].signup_process
+        days_left = total_days
+        available_slots = days_left * libraries[library_id].book_chanels
+
+        for book_id in libraries[library_id].books:
+            if scored[book_id]:
+                continue
+
+            if available_slots <= 0:
+                break
+
+            library.assignments.append(book_id)
+            scored[book_id] = True
+            available_slots -= 1
+
+
+def solve(intput_file: str, output_file: Optional[str]):
     no_of_days, book_scores, libraries = read_data(input_file)
 
     for lib in libraries:
@@ -103,6 +135,8 @@ def solve(intput_file: str, output_file: Optional[str]):
         print(f"Correct Solution: {rsolution[:100]}")
         print(f"Same?: {solution == rsolution}")
 
+    print_solution(libraries, solution)
+
 
 def algorithm(libraries, book_scores, no_of_days):
     heuristic_solution = heuristic_solution_generator(
@@ -112,9 +146,12 @@ def algorithm(libraries, book_scores, no_of_days):
     gain_function = partial(
         get_score, books_scores=book_scores, no_of_days=no_of_days, libraries=libraries
     )
+
     solution = local_search_iteration(
         libraries, gain_function, initial_solution=heuristic_solution
     )
+
+    assign_books(solution, book_scores, no_of_days, libraries)
 
     return gain_function(solution), solution
 
