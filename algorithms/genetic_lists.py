@@ -1,6 +1,4 @@
 import random
-import numpy.typing as npt
-import numpy as np
 from library import Library
 from typing import Callable, List, Optional, Tuple
 
@@ -21,66 +19,61 @@ def genetic(
     no_of_generations = 100
 
     mutation_probability = 0.8
+    # crossover_probability = 0.2
 
-    population, scores = generate_initial_population(
-        population_size, libraries, get_score
-    )
+    population = generate_initial_population(population_size, libraries, get_score)
 
-    for i in range(no_of_generations):
-        # sorted_population = sorted(population, key=lambda x: x[0], reverse=True)
-        sorted_indices = np.argsort(scores)[::-1]
+    generation = 0
 
-        population = population[sorted_indices]
-        scores = scores[sorted_indices]
+    while not check_time():
+        population.sort(key=lambda x: x[0], reverse=True)
 
         if check_time():
-            return (scores[0], population[0])
+            return population[0]
 
-        if (i + 1) % 10 == 0:
-            print(f"Generation {i + 1}")
-            print(f"Best solution: {scores[0]}")
+        if (generation + 1) % 10 == 0:
+            print(f"Generation {generation + 1}: {population[0][0]}")
+            print(f"Best solution: {population[0][0]}")
 
         for i in range(population_size // 2, population_size):
             # if random.random() < crossover_probability:
-            parent1 = tournament_selection(population, scores)
+            parent1 = tournament_selection(population)
             if random.random() < mutation_probability:
-                mutate(parent1)
+                mutate(parent1[1])
 
-            parent2 = tournament_selection(population, scores)
+            parent2 = tournament_selection(population)
             if random.random() < mutation_probability:
-                mutate(parent2)
+                mutate(parent2[1])
 
-            child = crossover(parent1, parent2)
+            child = crossover(parent1[1], parent2[1])
 
             if random.random() < mutation_probability:
                 mutate(child)
 
-            population[i] = child
-            scores[i] = get_score(child)
+            population[i] = (get_score(child), child)
 
-    best_score_id = np.argmax(scores)
-    best_score = scores[best_score_id]
-    best_solution = population[best_score_id]
+        generation += 1
 
-    return best_score, list(best_solution)
+    return max(population, key=lambda x: x[0])
 
 
 def generate_initial_population(
     population_size: int,
     libraries: list[Library],
     get_score: ScoreFunction,
-) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-    population = np.zeros((population_size, len(libraries)), dtype=np.int32)
-    scores = np.zeros(population_size, dtype=np.int32)
+) -> list[SolutionWithScore]:
+    initial_population = []
 
-    for i in range(population_size):
-        population[i] = np.random.permutation(len(libraries))
-        scores[i] = get_score(population[i])
+    for _ in range(population_size):
+        solution = list(range(len(libraries)))
+        random.shuffle(list(range(len(libraries))))
 
-    return population, scores
+        initial_population.append((get_score(solution), solution))
+
+    return initial_population
 
 
-def mutate(solution: npt.NDArray) -> None:
+def mutate(solution: Solution) -> None:
     swapped = False
     for i in range(len(solution) - 1):
         if swapped:
@@ -91,7 +84,7 @@ def mutate(solution: npt.NDArray) -> None:
             solution[i], solution[i + 1] = solution[i + 1], solution[i]
 
 
-def crossover(solution1: Solution, solution2: Solution):
+def crossover(solution1: Solution, solution2: Solution) -> Solution:
     p1 = random.randint(0, len(solution1) - 4)
     p2 = random.randint(p1 + 1, len(solution1) - 3)
 
@@ -129,21 +122,17 @@ def crossover(solution1: Solution, solution2: Solution):
     return child
 
 
-def tournament_selection(population: npt.NDArray, scores: npt.NDArray) -> npt.NDArray:
+def tournament_selection(population: list[SolutionWithScore]) -> SolutionWithScore:
     tournament_size = 5
 
-    best_solution_idx = random.randint(0, len(population) - 1)
-
-    best_solution = population[best_solution_idx]
-    best_score = scores[best_solution_idx]
+    best_solution = random.choice(population)
+    best_score = best_solution[0]
 
     for _ in range(tournament_size - 1):
-        solution_idx = random.randint(0, len(population) - 1)
-        solution = population[solution_idx]
-        score = scores[solution_idx]
+        solution = random.choice(population)
 
-        if score > best_score:
+        if solution[0] > best_score:
             best_solution = solution
-            best_score = score
+            best_score = solution[0]
 
     return best_solution

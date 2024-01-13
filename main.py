@@ -9,7 +9,7 @@ from score_result import get_answer_from_file, print_solution
 import os
 import sys
 from algorithms.local_search import local_search_iteration
-from algorithms.genetic import genetic
+from algorithms.genetic_lists import genetic
 
 from algorithms.heuristic_solution_generator import *
 import cProfile
@@ -23,7 +23,7 @@ start_time = perf_counter()
 def check_time():
     global start_time
 
-    if perf_counter() - start_time > 60 * 4.75:
+    if perf_counter() - start_time > 60 * 4.5:
         print(f"timeout: {perf_counter() - start_time}")
         return True
     return False
@@ -149,11 +149,12 @@ def algorithm(libraries, book_scores, no_of_days):
     )
     # score, solution = genetic(libraries, gain_function)
 
-    solution = heuristic_solution_generator2(libraries, book_scores, no_of_days)
+    # solution = heuristic_solution_generator2(libraries, book_scores, no_of_days)
+    _, solution = genetic(libraries, gain_function)
 
-    # solution = local_search_iteration(
-    #     libraries, gain_function, initial_solution=heuristic_solution
-    # )
+    solution = local_search_iteration(
+        libraries, gain_function, initial_solution=solution
+    )
 
     # assign_books(solution, book_scores, no_of_days, libraries)
 
@@ -175,11 +176,3 @@ if __name__ == "__main__":
     file_letter = sys.argv[1].split("/")[-1][0]
     # # stats to be visualized by ```snakeviz profile.prof```
     stats.dump_stats(f"profile-{file_letter}.prof")
-
-# no_of_days, book_score, libraries = read_data(input_file)
-
-# score, solution = local_search(libraries, get_score)
-
-
-# if output_file is not None:
-#     print(get_answer_from_file(input_file, output_file))
