@@ -1,4 +1,3 @@
-from main import check_time
 import random
 from library import Library
 from typing import Callable, List, Optional, Tuple
@@ -14,6 +13,8 @@ def genetic(
     libraries: list[Library],
     get_score: ScoreFunction,
 ) -> tuple[int, Solution]:
+    from main import check_time
+
     population_size = 200
     no_of_generations = 100
 
@@ -30,6 +31,7 @@ def genetic(
 
         if (i + 1) % 10 == 0:
             print(f"Generation {i + 1}: {sorted_population[0][0]}")
+            print(f"Best solution: {sorted_population[0][0]}")
 
         population = sorted_population[: population_size // 2]
 
@@ -48,6 +50,8 @@ def genetic(
 
             population.append((get_score(child1), child1))
             population.append((get_score(child2), child2))
+
+    return max(population, key=lambda x: x[0])
 
 
 def generate_initial_population(

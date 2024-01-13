@@ -9,6 +9,8 @@ from score_result import get_answer_from_file, print_solution
 import os
 import sys
 from algorithms.local_search import local_search_iteration
+from algorithms.genetic import genetic
+
 from algorithms.heuristic_solution_generator import *
 import cProfile
 import pstats
@@ -21,7 +23,7 @@ start_time = perf_counter()
 def check_time():
     global start_time
 
-    if perf_counter() - start_time > 60 * 4.5:
+    if perf_counter() - start_time > 60 * 4.75:
         print(f"timeout: {perf_counter() - start_time}")
         return True
     return False
@@ -142,11 +144,12 @@ def solve(intput_file: str, output_file: Optional[str]):
 
 
 def algorithm(libraries, book_scores, no_of_days):
-    solution = heuristic_solution_generator2(libraries, book_scores, no_of_days)
-
     gain_function = partial(
         get_score, books_scores=book_scores, no_of_days=no_of_days, libraries=libraries
     )
+    # score, solution = genetic(libraries, gain_function)
+
+    solution = heuristic_solution_generator2(libraries, book_scores, no_of_days)
 
     # solution = local_search_iteration(
     #     libraries, gain_function, initial_solution=heuristic_solution
