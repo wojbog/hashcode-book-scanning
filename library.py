@@ -3,6 +3,8 @@ import sys
 
 
 class Library:
+    __slots__ = ["id", "signup_process", "book_chanels", "books", "assignments"]
+
     def __init__(self, id: int, books, signup_process: int, book_ship: int, prority):
         self.id = id
         self.signup_process = signup_process
