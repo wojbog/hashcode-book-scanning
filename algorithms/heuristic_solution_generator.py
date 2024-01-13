@@ -27,6 +27,8 @@ def heuristic_solution_generator1(
 def heuristic_solution_generator2(
     libraries: list[Library], book_scores: list[int], no_of_days: int
 ) -> list[int]:
+    from main import check_time
+
     book_is_added = [False] * len(book_scores)
     library_is_taken = [False] * len(libraries)
     library_score = [0] * len(libraries)
@@ -36,11 +38,35 @@ def heuristic_solution_generator2(
     days_left = no_of_days
 
     for _ in libraries:
+        if check_time():
+            rest = heuristic_solution_generator1(
+                [library for library in libraries if not library_is_taken[library.id]],
+                book_scores,
+                days_left,
+            )
+
+            solution.extend(rest)
+            return solution
+
         best_library = Library(-1, [], -1, -1, -1)
         best_library_score = -1
 
         for library in libraries:
+            if check_time():
+                rest = heuristic_solution_generator1(
+                    [
+                        library
+                        for library in libraries
+                        if not library_is_taken[library.id]
+                    ],
+                    book_scores,
+                    days_left,
+                )
+
+                solution.extend(rest)
+                return solution
             if library_is_taken[library.id]:
+                library_score[library.id] = 0
                 continue
 
             available_slots = (
@@ -49,6 +75,7 @@ def heuristic_solution_generator2(
 
             if available_slots <= 0:
                 library_score[library.id] = 0
+                continue
 
             for book_id in library.books:
                 if book_is_added[book_id]:
@@ -60,11 +87,6 @@ def heuristic_solution_generator2(
                 available_slots -= 1
 
                 library_score[library.id] += book_scores[book_id]
-
-            # for book_id in library.books:
-            #     if book_is_added[book_id]:
-            #         continue
-            #     library_score[library.id] += book_scores[book_id]
 
             current_library_score = library_score[library.id] / library.signup_process
 
@@ -81,6 +103,7 @@ def heuristic_solution_generator2(
 
         available_slots = days_left * best_library.book_chanels
 
+        empty_library = True
         for book_id in best_library.books:
             if book_is_added[book_id]:
                 continue
@@ -90,8 +113,13 @@ def heuristic_solution_generator2(
 
             available_slots -= 1
 
+            best_library.assignments.append(book_id)
             book_is_added[book_id] = True
+            empty_library = False
 
-        solution.append(best_library.id)
+        if not empty_library:
+            solution.append(best_library.id)
+        else:
+            days_left += best_library.signup_process
 
     return solution

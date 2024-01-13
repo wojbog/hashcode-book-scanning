@@ -22,7 +22,7 @@ def check_time():
     global start_time
 
     if perf_counter() - start_time > 60 * 4.5:
-        print("timeout")
+        print(f"timeout: {perf_counter() - start_time}")
         return True
     return False
 
@@ -128,15 +128,15 @@ def solve(intput_file: str, output_file: Optional[str]):
     score, solution = algorithm(libraries, book_scores, no_of_days)
     end_time = perf_counter()
     print(f"Score: {score}")
-    print(f"Solution: {solution[:100]}")
-    print(f"Time: {(end_time - start_time) / 60} minutes")
+    print(f"Solution: {solution[:10]}")
     # in minutes
 
     if output_file is not None:
         rscore, rsolution = get_answer_from_file(intput_file, output_file)
         print(f"Correct Score: {rscore}")
-        print(f"Correct Solution: {rsolution[:100]}")
+        print(f"Correct Solution: {rsolution[:10]}")
         print(f"Same?: {solution == rsolution}")
+    print(f"Time: {(end_time - start_time) / 60} minutes")
 
     print_solution(libraries, solution)
 
@@ -152,7 +152,7 @@ def algorithm(libraries, book_scores, no_of_days):
     #     libraries, gain_function, initial_solution=heuristic_solution
     # )
 
-    assign_books(solution, book_scores, no_of_days, libraries)
+    # assign_books(solution, book_scores, no_of_days, libraries)
 
     return gain_function(solution), solution
 
@@ -169,8 +169,9 @@ if __name__ == "__main__":
     stats = pstats.Stats(pr)
     stats.sort_stats(pstats.SortKey.TIME)
 
+    file_letter = sys.argv[1].split("/")[-1][0]
     # # stats to be visualized by ```snakeviz profile.prof```
-    stats.dump_stats("profile.prof")
+    stats.dump_stats(f"profile-{file_letter}.prof")
 
 # no_of_days, book_score, libraries = read_data(input_file)
 

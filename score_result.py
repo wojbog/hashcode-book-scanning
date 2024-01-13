@@ -18,8 +18,8 @@ def get_answer_from_file(input_file: str, answer_file: str) -> tuple[int, list[i
 
 
 def print_solution(libraries: list[Library], order_of_signup: list[int]):
-    with open("outputC.txt", "w") as file:
-        file.write(str(len(libraries)))
+    with open("output.txt", "w") as file:
+        file.write(str(len(order_of_signup)))
         file.write("\n")
         for library_id in order_of_signup:
             file.write(f"{library_id} {len(libraries[library_id].assignments)}\n")
