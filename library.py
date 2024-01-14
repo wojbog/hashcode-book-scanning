@@ -30,8 +30,8 @@ class Library:
     def sort_books(self, prority):
         self.books.sort(key=lambda x: prority[x], reverse=True)
 
-    def print_assignments(self, file=sys.stdout):
+    def print_assignments(self):
         for book_id in self.assignments:
-            file.write(str(book_id))
-            file.write(" ")
-        file.write("\n")
+            print(str(book_id), end=" ")
+
+        print()

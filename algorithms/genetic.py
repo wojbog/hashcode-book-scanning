@@ -2,7 +2,7 @@ import random
 import numpy.typing as npt
 import numpy as np
 from library import Library
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List
 
 
 ScoreFunction = Callable[[List[int]], int]
@@ -27,7 +27,6 @@ def genetic(
     )
 
     for i in range(no_of_generations):
-        # sorted_population = sorted(population, key=lambda x: x[0], reverse=True)
         sorted_indices = np.argsort(scores)[::-1]
 
         population = population[sorted_indices]
@@ -36,12 +35,11 @@ def genetic(
         if check_time():
             return (scores[0], population[0])
 
-        if (i + 1) % 10 == 0:
-            print(f"Generation {i + 1}")
-            print(f"Best solution: {scores[0]}")
+        # if (i + 1) % 10 == 0:
+        # print(f"Generation {i + 1}")
+        # print(f"Best solution: {scores[0]}")
 
         for i in range(population_size // 2, population_size):
-            # if random.random() < crossover_probability:
             parent1 = tournament_selection(population, scores)
             if random.random() < mutation_probability:
                 mutate(parent1)

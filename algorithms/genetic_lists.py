@@ -1,6 +1,6 @@
 import random
 from library import Library
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List
 
 
 ScoreFunction = Callable[[List[int]], int]
@@ -16,10 +16,8 @@ def genetic(
     from main import check_time
 
     population_size = 200
-    no_of_generations = 100
 
     mutation_probability = 0.8
-    # crossover_probability = 0.2
 
     population = generate_initial_population(population_size, libraries, get_score)
 
@@ -31,12 +29,11 @@ def genetic(
         if check_time():
             return population[0]
 
-        if (generation + 1) % 10 == 0:
-            print(f"Generation {generation + 1}: {population[0][0]}")
-            print(f"Best solution: {population[0][0]}")
+        # if (generation + 1) % 10 == 0:
+        #     print(f"Generation {generation + 1}: {population[0][0]}")
+        #     print(f"Best solution: {population[0][0]}")
 
         for i in range(population_size // 2, population_size):
-            # if random.random() < crossover_probability:
             parent1 = tournament_selection(population)
             if random.random() < mutation_probability:
                 mutate(parent1[1])

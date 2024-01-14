@@ -1,38 +1,34 @@
 import random
-from time import perf_counter
-from typing import Callable, List, Generator
+from typing import Callable, List
 
-# from algorithms.types import ScoreFunction
 from library import Library
 
 
 ScoreFunction = Callable[[List[int]], int]
 
 
-# def local_search(
-#     libraries: list[Library],
-#     get_score: ScoreFunction,
-# ) -> tuple[int, list[int]]:
-#     no_of_iterations = 1
+def local_search(
+    libraries: list[Library],
+    get_score: ScoreFunction,
+) -> tuple[int, list[int]]:
+    no_of_iterations = 1
 
-#     best_score = -1
-#     best_solution = []
-#     for i in range(no_of_iterations):
-#         print(f"iteration {i}")
-#         solution = local_search_iteration(libraries, get_score)
-#         score = get_score(solution)
-#         print(f"score: {score}")
-#         if score > best_score:
-#             best_score = score
-#             best_solution = solution
+    best_score = -1
+    best_solution = []
+    for i in range(no_of_iterations):
+        solution = local_search_iteration(libraries, get_score)
+        score = get_score(solution)
+        if score > best_score:
+            best_score = score
+            best_solution = solution
 
-#     return get_score(best_solution), best_solution
+    return get_score(best_solution), best_solution
 
 
 def local_search_iteration(
     libraries: list[Library],
     get_score: ScoreFunction,
-    initial_solution: list[int] | None,
+    initial_solution: list[int] | None = None,
 ) -> list[int]:
     from main import check_time
 
@@ -49,7 +45,6 @@ def local_search_iteration(
     while True:
         for neighbour in get_neighbours(current_solution):
             if check_time():
-                print(f"{enhancments} enhancments")
                 return best_solution
 
             current_score = get_score(neighbour)
@@ -66,16 +61,12 @@ def local_search_iteration(
         current_solution = best_solution
 
         if check_time():
-            print(f"{enhancments} enhancments")
             return best_solution
 
-    print(f"{enhancments} enhancments")
     return best_solution
 
 
 def get_neighbours(solution: list[int]):  # -> Generator[List[int]]]:
-    print("get_neighbours")
-    print(len(solution))
     for i in range(len(solution) - 1):
         new_solution = solution.copy()
         new_solution[i], new_solution[i + 1] = new_solution[i + 1], new_solution[i]

@@ -113,7 +113,7 @@ def heuristic_solution_generator2(
 
             available_slots -= 1
 
-            best_library.assignments.append(book_id)
+            # best_library.assignments.append(book_id)
             book_is_added[book_id] = True
             empty_library = False
 
